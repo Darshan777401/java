@@ -1,0 +1,204 @@
+#1
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+@WebServlet("/RequestInfoServlet")
+public class RequestInfoServlet extends HttpServlet {
+    
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        out.println("<html><head><title>Request Information</title></head><body>");
+        out.println("<h1>Request Information:</h1>");
+        out.println("<ul>");
+        out.println("<li>Client IP Address: " + request.getRemoteAddr() + "</li>");
+        out.println("<li>Browser Type: " + request.getHeader("User-Agent") + "</li>");
+        out.println("</ul>");
+        out.println("<h1>Server Information:</h1>");
+        out.println("<ul>");
+        out.println("<li>Server Operating System: " + System.getProperty("os.name") + "</li>");
+        // Here you can add more server information as needed
+        out.println("</ul>");
+        out.println("</body></html>");
+        out.close();
+    }
+}
+
+
+#2
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.Date" %>
+<html>
+<head>
+    <title>JSP Implicit Objects Example</title>
+</head>
+<body>
+    <h1>JSP Implicit Objects Example</h1>
+    
+    Current Date and Time: <%= new Date() %><br><br>
+    
+    <b>User-Agent Header:</b> <%= request.getHeader("User-Agent") %><br><br>
+    
+    <% response.addCookie(new Cookie("myCookie", "exampleValue")); %>
+    Cookie added successfully.<br><br>
+    
+    Init Parameter value: <%= config.getInitParameter("paramName") %><br><br>
+
+    Context Parameter value: <%= application.getInitParameter("contextParamName") %><br><br>
+    
+    Current Session ID: <%= session.getId() %><br><br>
+    
+    <% pageContext.setAttribute("attributeName", "attributeValue"); %>
+    Attribute set successfully. Value: <%= pageContext.getAttribute("attributeName") %><br><br>
+    
+    Generated Servlet Name: <%= page.toString() %><br><br>
+    
+</body>
+</html>
+
+
+
+
+#3
+index.jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Login</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <form action="LoginServlet" method="post">
+        Username: <input type="text" name="username"><br>
+        Password: <input type="password" name="password"><br>
+        <input type="submit" value="Login">
+    </form>
+</body>
+</html>
+
+LoginServlet.jsp
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class LoginServlet extends HttpServlet {
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        if (username.equals("admin") && password.equals("admin")) {
+            HttpSession session = request.getSession();
+            session.setAttribute("username", username);
+            response.sendRedirect("BookCatalog.jsp");
+        } else {
+            response.sendRedirect("index.jsp");
+        }
+    }
+}
+
+BookCatalog.java
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
+<html>
+<head>
+    <title>Book Catalog</title>
+</head>
+<body>
+    <h1>Book Catalog</h1>
+    <ul>
+        <li>Book 1 - $10 <a href="CartServlet?book=Book1&price=10">Add to Cart</a></li>
+        <li>Book 2 - $15 <a href="CartServlet?book=Book2&price=15">Add to Cart</a></li>
+        <li>Book 3 - $20 <a href="CartServlet?book=Book3&price=20">Add to Cart</a></li>
+    </ul>
+</body>
+</html>
+
+
+CartServlet.java
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class CartServlet extends HttpServlet {
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session != null && session.getAttribute("username") != null) {
+            String book = request.getParameter("book");
+            double price = Double.parseDouble(request.getParameter("price"));
+
+            Object cart = session.getAttribute("cart");
+            if (cart == null) {
+                cart = new ArrayList<String>();
+                session.setAttribute("cart", cart);
+            }
+
+            ((List<String>) cart).add(book);
+            response.sendRedirect("BookCatalog.jsp");
+        } else {
+            response.sendRedirect("index.jsp");
+        }
+    }
+}
+
+
+Checkout.jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.List" %>
+<html>
+<head>
+    <title>Checkout</title>
+</head>
+<body>
+    <h1>Checkout</h1>
+    <h3>Books Purchased:</h3>
+    <ul>
+        <% 
+            HttpSession session = request.getSession(false);
+            if (session != null && session.getAttribute("username") != null) {
+                List<String> cart = (List<String>) session.getAttribute("cart");
+                if (cart != null && !cart.isEmpty()) {
+                    for (String book : cart) {
+                        out.println("<li>" + book + "</li>");
+                    }
+                } else {
+                    out.println("<li>No books in cart</li>");
+                }
+            } else {
+                response.sendRedirect("index.jsp");
+            }
+        %>
+    </ul>
+    <h3>Total Bill: $<%= calculateTotalBill(session) %></h3>
+    <% session.invalidate(); %>
+</body>
+</html>
+
+<%!
+    private double calculateTotalBill(HttpSession session) {
+        double total = 0.0;
+        List<String> cart = (List<String>) session.getAttribute("cart");
+        if (cart != null && !cart.isEmpty()) {
+            for (String book : cart) {
+                if (book.equals("Book1")) {
+                    total += 10;
+                } else if (book.equals("Book2")) {
+                    total += 15;
+                } else if (book.equals("Book3")) {
+                    total += 20;
+                }
+            }
+        }
+        return total;
+    }
+%>
+
+
+Above is a basic example of a JSP-based online book purchase system that utilizes HttpSession to manage user login and track the purchase:
+
+index.jsp: The login page where the user enters their credentials.
+BookCatalog.jsp: The page displaying the book catalog.
+Cart.jsp: The page where users can add books to their cart.
+Checkout.jsp: The final page displaying the total bill.

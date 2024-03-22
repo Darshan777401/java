@@ -1,0 +1,180 @@
+#1
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Search</title>
+</head>
+<body>
+    <h1>Customer Search</h1>
+    <form id="searchForm" action="/searchServlet" method="post">
+        <label for="customerNumber">Enter Customer Number:</label><br>
+        <input type="text" id="customerNumber" name="customerNumber"><br><br>
+        <button type="submit">Search</button>
+    </form>
+
+    <div id="searchResults">
+        <!-- Search results will be displayed here -->
+    </div>
+
+</body>
+</html>
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/searchServlet")
+public class SearchServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Retrieve customer number from the request
+        String customerNumber = request.getParameter("customerNumber");
+
+        // Perform search operation in the database using the customer number
+        // (Replace this with your actual database search code)
+
+        // Dummy search result for demonstration
+        String customerDetails = null; // Replace this with actual customer details fetched from the database
+        if (customerDetails != null) {
+            // If customer details found, return them
+            response.setContentType("text/html");
+            PrintWriter out = response.getWriter();
+            out.println("<h2>Customer Details</h2>");
+            out.println("<p>" + customerDetails + "</p>");
+        } else {
+            // If customer details not found, return an error message
+            response.setContentType("text/html");
+            PrintWriter out = response.getWriter();
+            out.println("<h2>Error</h2>");
+            out.println("<p>Customer not found.</p>");
+        }
+    }
+}
+
+
+//2
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Subject</title>
+</head>
+<body>
+    <h1>Select Subject</h1>
+    <form id="subjectForm" action="/setCookie" method="post">
+        <label for="maths">Maths</label>
+        <input type="radio" id="maths" name="subject" value="Maths"><br>
+        <label for="physics">Physics</label>
+        <input type="radio" id="physics" name="subject" value="Physics"><br>
+        <label for="chemistry">Chemistry</label>
+        <input type="radio" id="chemistry" name="subject" value="Chemistry"><br>
+        <label for="biology">Biology</label>
+        <input type="radio" id="biology" name="subject" value="Biology"><br><br>
+        <button type="submit">Submit</button>
+        <button type="reset">Reset</button>
+    </form>
+
+    <div id="responseMessage">
+        <!-- Server response message will be displayed here -->
+    </div>
+
+</body>
+</html>
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/setCookie")
+public class SetCookieServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Retrieve selected subject from the request
+        String subject = request.getParameter("subject");
+
+        // Check if a cookie with the selected subject already exists
+        Cookie[] cookies = request.getCookies();
+        boolean cookieExists = false;
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("subject") && cookie.getValue().equals(subject)) {
+                    cookieExists = true;
+                    break;
+                }
+            }
+        }
+
+        // If the cookie doesn't exist, create and add it to the response
+        if (!cookieExists) {
+            Cookie subjectCookie = new Cookie("subject", subject);
+            response.addCookie(subjectCookie);
+        }
+
+        // Send response message back to the client
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        out.println("<p>Cookie set for subject: " + subject + "</p>");
+    }
+}
+
+
+
+//3
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Display Patient Details</title>
+</head>
+<body>
+    <h1>Patient Details</h1>
+    <table border="1">
+        <tr>
+            <th>Patient Number</th>
+            <th>Patient Name</th>
+            <th>Patient Address</th>
+            <th>Patient Age</th>
+            <th>Patient Disease</th>
+        </tr>
+        <%-- Assuming patientDetailsList is a list of Patient objects populated from a database --%>
+        <%
+            // Import necessary classes
+            // Replace this with the actual class/package where your Patient class is located
+            // For example: if your Patient class is in com.example.model.Patient, then import it here
+            // <%@ page import="com.example.model.Patient" %>
+            
+            // Dummy patient details for demonstration
+            String[][] patientDetailsList = {
+                {"1", "John Doe", "123 Main St", "35", "Fever"},
+                {"2", "Jane Smith", "456 Elm St", "28", "Flu"},
+                {"3", "Alice Johnson", "789 Oak St", "42", "Headache"}
+            };
+            
+            // Iterate through the patient details and display them in the table
+            for (String[] patientDetails : patientDetailsList) {
+        %>
+            <tr>
+                <td><%= patientDetails[0] %></td>
+                <td><%= patientDetails[1] %></td>
+                <td><%= patientDetails[2] %></td>
+                <td><%= patientDetails[3] %></td>
+                <td><%= patientDetails[4] %></td>
+            </tr>
+        <% } %>
+    </table>
+</body>
+</html>
